@@ -48,37 +48,4 @@ Vagrant.configure("2") do |config|
 
     stack.vm.provision :shell, path: "setup.sh", args: [PROVISIONER_IP, MACHINE1_IP, MACHINE1_MAC, DEST_DIR_BASE, LOADBALANCER_IP, HELM_CHART_VERSION, HELM_LOADBALANCER_INTERFACE, KUBECTL_VERSION, K3D_VERSION, GATEWAY_IP]
   end
-
-  config.vm.define :machine1, autostart: false do |machine1|
-    machine1.ssh.insert_key = false
-    machine1.vm.boot_timeout = 10
-    machine1.vm.synced_folder ".", "/vagrant", disabled: true
-    machine1.vm.network :private_network, ip: MACHINE1_IP,
-                                          mac: MACHINE1_MAC.gsub(/[:-]/, "").strip,
-                                          adapter: 1,
-                                          libvirt__network_name: "tink_network",
-                                          libvirt__dhcp_enabled: false,
-                                          libvirt__forward_mode: "nat"
-
-    machine1.vm.provider "libvirt" do |v|
-      v.storage :file, :size => "20G"
-      v.memory = 4096
-      v.cpus = 2
-      v.boot "hd"
-      v.boot "network"
-      v.graphics_ip = "0.0.0.0"
-      v.machine_arch = "x86_64"
-    end
-
-    machine1.vm.provider "virtualbox" do |v, override|
-      override.vm.box = "jtyr/pxe"
-      v.memory = 2048
-      v.cpus = 2
-      v.gui = true
-      v.customize ["modifyvm", :id, "--nic1", "hostonlynet", "--nic2", "nat", "--boot1", "disk", "--boot2", "net"]
-      v.customize ["modifyvm", :id, "--macaddress1", MACHINE1_MAC.gsub(/[:-]/, "").strip]
-      v.customize ["setextradata", :id, "GUI/ScaleFactor", "3.0"]
-      v.check_guest_additions = false
-    end
-  end
 end
