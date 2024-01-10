@@ -103,9 +103,17 @@ apply_manifests() {
 		envsubst <"$i"
 		echo -e '---'
 	done >/tmp/manifests.yaml
+	
+	# Inject our own manifests
+	for i in "$manifests_dir"/machines/*.yaml; do
+		envsubst <"$i"
+		echo -e '---'
+	done >>/tmp/manifests.yaml
+
 	kubectl apply -n "$namespace" -f /tmp/manifests.yaml
 	# We do not need the built in ubuntu-download template.
 	#kubectl apply -n "$namespace" -f "$manifests_dir"/ubuntu-download.yaml
+	kubectl apply -n "$namespace" -f "$manifests_dir"/debian-download.yaml
 }
 
 run_helm() {
