@@ -104,11 +104,14 @@ apply_manifests() {
 		echo -e '---'
 	done >/tmp/manifests.yaml
 	
-	# Inject our own manifests
-	for i in "$manifests_dir"/machines/*.yaml; do
-		envsubst <"$i"
-		echo -e '---'
-	done >>/tmp/manifests.yaml
+	# Check if /machines/ directory exists and contains any .yaml files
+	if [ -d "$manifests_dir/machines" ] && [ -n "$(ls -A "$manifests_dir/machines"/*.yaml 2>/dev/null)" ]; then
+		# Inject our own manifests
+		for i in "$manifests_dir"/machines/*.yaml; do
+			envsubst <"$i"
+			echo -e '---'
+		done >>/tmp/manifests.yaml
+	fi
 
 	kubectl apply -n "$namespace" -f /tmp/manifests.yaml
 	# We do not need the built in ubuntu-download template.
